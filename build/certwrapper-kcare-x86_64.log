@@ -1,0 +1,19 @@
++ make update all
+git submodule update --init --recursive
+Submodule 'gnu-efi' (https://github.com/rhboot/gnu-efi) registered for path 'gnu-efi'
+Cloning into '/root/certwrapper/gnu-efi'...
+Submodule path 'gnu-efi': checked out '03670e14f263ad571bf0f39dffa9b8d23535f4d3'
+gcc -O0 -g3 -fPIC -Werror -Wall -Wextra -fshort-wchar -fno-merge-constants -ffreestanding -fno-stack-protector -fno-stack-check --std=gnu11 -DCONFIG_x86_64 -I/root/certwrapper/gnu-efi//inc -I/root/certwrapper/gnu-efi//inc/x86_64 -I/root/certwrapper/gnu-efi//inc/protocol -mno-mmx -mno-sse -mno-red-zone -nostdinc -maccumulate-outgoing-args -DEFI_FUNCTION_WRAPPER -DGNU_EFI_USE_MS_ABI -I/usr/lib/gcc/x86_64-redhat-linux/11/include -DVENDOR_DB -c -o certwrapper.o certwrapper.c
+gcc -O0 -g3 -fPIC -Werror -Wall -Wextra -fshort-wchar -fno-merge-constants -ffreestanding -fno-stack-protector -fno-stack-check --std=gnu11 -DCONFIG_x86_64 -I/root/certwrapper/gnu-efi//inc -I/root/certwrapper/gnu-efi//inc/x86_64 -I/root/certwrapper/gnu-efi//inc/protocol -mno-mmx -mno-sse -mno-red-zone -nostdinc -maccumulate-outgoing-args -DEFI_FUNCTION_WRAPPER -DGNU_EFI_USE_MS_ABI -I/usr/lib/gcc/x86_64-redhat-linux/11/include -DVENDOR_DB -x c -c -o sbat_data.o /dev/null
+objcopy --add-section .sbat=/root/certwrapper/data/sbat.csv \
+	--set-section-flags .sbat=contents,alloc,load,readonly,data \
+	sbat_data.o
+gcc -nostdlib -fPIC -Wl,--warn-common -Wl,--no-undefined -Wl,-shared -Wl,-Bsymbolic -L/usr/lib64 -L/root/certwrapper/gnu-efi/ -Wl,--build-id=sha1 -Wl,--hash-style=sysv  -o certwrapper.so certwrapper.o sbat_data.o  \
+	/usr/lib/gcc/x86_64-redhat-linux/11/libgcc.a \
+	-T /root/certwrapper/elf_x86_64_efi.lds
+objcopy -j .text  -j .reloc  -j .db  -j .sbat  \
+	   --file-alignment 512 --section-alignment 4096 -D \
+	   --strip-unneeded 	 --set-section-alignment .db=512 --set-section-flags .db=alloc,contents,load,readonly,data --add-section .db="db.esl" --change-section-address .db=0xb000 \
+	   --target efi-app-x86_64 certwrapper.so certwrapper.efi
+++ uname -m
++ cp certwrapper.efi build-certwrapper-kcare/certwrapper-kcare-x86_64.efi
