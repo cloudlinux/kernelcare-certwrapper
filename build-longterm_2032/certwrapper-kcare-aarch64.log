@@ -1,0 +1,19 @@
+binutils.aarch64                                     2.35.2-63.el9                       @baseos   
+gcc.aarch64                                          11.5.0-5.el9_5.alma.1               @appstream
+git submodule update --init --recursive
+Submodule 'gnu-efi' (https://github.com/rhboot/gnu-efi) registered for path 'gnu-efi'
+Cloning into '/home/ec2-user/kernelcare-certwrapper/gnu-efi'...
+Submodule path 'gnu-efi': checked out '03670e14f263ad571bf0f39dffa9b8d23535f4d3'
+gcc -O0 -g3 -fPIC -Werror -Wall -Wextra -fshort-wchar -fno-merge-constants -ffreestanding -fno-stack-protector -fno-stack-check --std=gnu11 -DCONFIG_aarch64 -I/home/ec2-user/kernelcare-certwrapper/gnu-efi//inc -I/home/ec2-user/kernelcare-certwrapper/gnu-efi//inc/aarch64 -I/home/ec2-user/kernelcare-certwrapper/gnu-efi//inc/protocol -ffreestanding -I/usr/lib/gcc/aarch64-redhat-linux/11/include -DVENDOR_DB -c -o certwrapper.o certwrapper.c
+gcc -O0 -g3 -fPIC -Werror -Wall -Wextra -fshort-wchar -fno-merge-constants -ffreestanding -fno-stack-protector -fno-stack-check --std=gnu11 -DCONFIG_aarch64 -I/home/ec2-user/kernelcare-certwrapper/gnu-efi//inc -I/home/ec2-user/kernelcare-certwrapper/gnu-efi//inc/aarch64 -I/home/ec2-user/kernelcare-certwrapper/gnu-efi//inc/protocol -ffreestanding -I/usr/lib/gcc/aarch64-redhat-linux/11/include -DVENDOR_DB -x c -c -o sbat_data.o /dev/null
+objcopy --add-section .sbat=/home/ec2-user/kernelcare-certwrapper/data/sbat.csv \
+	--set-section-flags .sbat=contents,alloc,load,readonly,data \
+	sbat_data.o
+gcc -nostdlib -fPIC -Wl,--warn-common -Wl,--no-undefined -Wl,-shared -Wl,-Bsymbolic -L/usr/lib64 -L/home/ec2-user/kernelcare-certwrapper/gnu-efi/ -Wl,--build-id=sha1 -Wl,--hash-style=sysv  -o certwrapper.so certwrapper.o sbat_data.o  \
+	/usr/lib/gcc/aarch64-redhat-linux/11/libgcc.a \
+	-T /home/ec2-user/kernelcare-certwrapper/elf_aarch64_efi.lds
+/usr/bin/ld: warning: certwrapper.so has a LOAD segment with RWX permissions
+objcopy -j .text  -j .reloc  -j .db  -j .sbat  \
+	   --file-alignment 512 --section-alignment 4096 -D \
+	   --strip-unneeded 	 --set-section-alignment .db=512 --set-section-flags .db=alloc,contents,load,readonly,data --add-section .db="db.esl" --change-section-address .db=0x1b000 \
+	   --target efi-app-aarch64 certwrapper.so certwrapper.efi
