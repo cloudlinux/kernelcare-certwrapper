@@ -1,0 +1,27 @@
+## 2011 signature comes first according to MS recommendations.
+#
+# pesign -S -i shim_certificate_kernelcare_x86_64.efi
+---------------------------------------------
+certificate address is 0x7fb856663808
+Content was not encrypted.
+Content is detached; signature cannot be verified.
+The signer's common name is Microsoft Windows UEFI Driver Publisher
+No signer email address.
+No signing time included.
+There were certs or crls included.
+---------------------------------------------
+certificate address is 0x7fb856665e30
+Content was not encrypted.
+Content is detached; signature cannot be verified.
+The signer's common name is Microsoft UEFI CA 2023 signer
+No signer email address.
+No signing time included.
+There were certs or crls included.
+---------------------------------------------
+
+---
+# dual signature in a nutshell:
+cp SignedBy_MSFT2011UEFICA/shim_certificate_kernelcare_aarch64.efi .
+pesign -i SignedBy_MSFT2023UEFICA/shim_certificate_kernelcare_aarch64.efi -e shim_certificate_kernelcare_aarch64.efi.sig
+pesign -i shim_certificate_kernelcare_aarch64.efi -o shim_certificate_kernelcare_aarch64.efi.dual -m shim_certificate_kernelcare_aarch64.efi.sig
+mv shim_certificate_kernelcare_aarch64.efi.dual shim_certificate_kernelcare_aarch64.efi
